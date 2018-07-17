@@ -1,0 +1,35 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.drawing.drawingapplication"
+        minSdkVersion 22
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    compile('com.jakewharton:butterknife:8.5.1') {
+        /* Multiple dex file define error (DexException) is thrown, since duplicates of the
+           following libraries are being included with Butterknife starting in 8.5.x. We must
+           therefore exclude them.
+
+           Running 'gradle -q app:dependencies' is a great way to see the dependency tree of an app.
+         */
+        exclude module: 'support-annotations'
+        exclude module: 'support-compat'
+    }
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+    implementation project(':color-picker')
+}
