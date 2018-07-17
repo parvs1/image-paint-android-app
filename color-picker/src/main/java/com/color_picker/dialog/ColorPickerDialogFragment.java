@@ -23,7 +23,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -50,6 +49,8 @@ public class ColorPickerDialogFragment extends DialogFragment {
     private ImageView closeButton;
     private ColorPickerDialogListener mListener;
     private SeekBar strokeWidthSeekBar;
+    private int strokeWidth;
+    private TextView textViewStrokeWidth;
 
     public static ColorPickerDialogFragment newInstance(int dialogId, int initialColor) {
         return newInstance(dialogId, null, null, initialColor, false, null);
@@ -65,6 +66,24 @@ public class ColorPickerDialogFragment extends DialogFragment {
         args.putString("ok_button", okButtonText);
         args.putBoolean("alpha", showAlphaSlider);
         args.putInt("init_color", initialColor);
+        args.putSerializable("serializable_class", serializable);
+
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+    public static ColorPickerDialogFragment newInstance(
+            int dialogId, String title, String okButtonText, int initialColor, boolean showAlphaSlider, float strokeWidth, Serializable serializable) {
+
+        ColorPickerDialogFragment frag = new ColorPickerDialogFragment();
+        Bundle args = new Bundle();
+        args.putInt("id", dialogId);
+        args.putString("title", title);
+        args.putString("ok_button", okButtonText);
+        args.putBoolean("alpha", showAlphaSlider);
+        args.putInt("init_color", initialColor);
+        args.putInt("stroke_width", (int) strokeWidth);
         args.putSerializable("serializable_class", serializable);
 
         frag.setArguments(args);
@@ -117,6 +136,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
         mOkButton = (Button) v.findViewById(android.R.id.button1);
         closeButton = (ImageView) v.findViewById(R.id.button_close);
         strokeWidthSeekBar = (SeekBar) v.findViewById(R.id.seek_bar_stroke_width);
+        textViewStrokeWidth = (TextView) v.findViewById(R.id.text_view_stroke_width);
 
 
         mColorPicker.setOnColorChangedListener(new ColorPickerView.OnColorChangedListener() {
@@ -148,8 +168,31 @@ public class ColorPickerDialogFragment extends DialogFragment {
             titleView.setVisibility(View.GONE);
         }
 
+        strokeWidthSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+			{
+				textViewStrokeWidth.setText("Thickness of the stroke: " + Integer.toString(i + 10));
+			}
 
-        if (savedInstanceState == null) {
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+		});
+
+		int strokeWidth = getArguments().getInt("stroke_width");
+		strokeWidthSeekBar.setProgress(strokeWidth - 10);
+		textViewStrokeWidth.setText("Thickness of the stroke: " + Integer.toString(strokeWidth));
+
+		if (savedInstanceState == null) {
             mColorPicker.setAlphaSliderVisible(
                     getArguments().getBoolean("alpha"));
 

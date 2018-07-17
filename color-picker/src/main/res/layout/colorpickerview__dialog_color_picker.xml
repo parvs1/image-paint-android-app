@@ -90,11 +90,12 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/text_view_stroke_width"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginBottom="10dp"
-        android:text="Set Thickness"/>
+        android:text="Thickness of the Stroke: "/>
     <SeekBar
         android:id="@+id/seek_bar_stroke_width"
         android:max="20"

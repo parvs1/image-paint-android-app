@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import butterknife.BindView;
@@ -31,9 +34,12 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 
+import static android.os.Environment.DIRECTORY_PICTURES;
+
 public class MainActivity extends AppCompatActivity implements Serializable, ColorPickerDialogFragment.ColorPickerDialogListener
 {
-	@BindView(R.id.image_result) ImageView imageResult;
+	@BindView(R.id.image_result)
+	ImageView imageResult;
 
 	private Bitmap masterBitmap;
 	private Canvas masterCanvas;
@@ -84,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		// Create an image file name
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 		String imageFileName = "JPEG_" + timeStamp + "_";
-		File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+		File storageDir = getExternalFilesDir(DIRECTORY_PICTURES);
 		File image = File.createTempFile(
 				imageFileName,  /* prefix */
 				".jpg",         /* suffix */
@@ -113,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 	public void onClickAdavancedSettings()
 	{
 		ColorPickerDialogFragment colorPickerDialogFragment = ColorPickerDialogFragment
-				.newInstance(0, "Advanced Color Picker", null, Color.WHITE, false, this);
+				.newInstance(0, "Advanced Color Picker", null, paintDraw.getColor(), false, paintDraw.getStrokeWidth(), this);
 		colorPickerDialogFragment.show(getFragmentManager(), "Color Picker");
 	}
 
@@ -129,25 +135,29 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 	@OnTouch(R.id.image_result)
 	public boolean onTouchImageResult(View view, MotionEvent event)
 	{
-		int action = event.getAction();
 		int x = (int) event.getX();
 		int y = (int) event.getY();
-		switch (action)
+
+		switch (event.getAction())
 		{
 			case MotionEvent.ACTION_DOWN:
-				previousX = x;
-				previousY = y;
-				drawOnProjectedBitMap((ImageView) view, masterBitmap, previousX, previousY, x, y);
+				touchStart(x, y);
 				break;
 			case MotionEvent.ACTION_MOVE:
-				drawOnProjectedBitMap((ImageView) view, masterBitmap, previousX, previousY, x, y);
-				previousX = x;
-				previousY = y;
+				touchMove(x, y);
 				break;
 			case MotionEvent.ACTION_UP:
-				drawOnProjectedBitMap((ImageView) view, masterBitmap, previousX, previousY, x, y);
+				touchUp();
 				break;
 		}
+
+		for (PaintPath paintPath : paths)
+		{
+			masterCanvas.drawPath(paintPath.path, paintPath.paint);
+		}
+
+		imageResult.invalidate();
+
 
 		/*
 		 * Return 'true' to indicate that the event have been consumed.
@@ -157,6 +167,39 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		return true;
 	}
 
+	private float mX, mY;
+	private Path mPath;
+	private ArrayList<PaintPath> paths = new ArrayList<>();
+	private static final float TOUCH_TOLERANCE = 4;
+
+	private void touchStart(float x, float y)
+	{
+		mPath = new Path();
+		paths.add(new PaintPath(new Paint(paintDraw), mPath));
+
+		mPath.reset();
+		mPath.moveTo(x, y);
+		mX = x;
+		mY = y;
+	}
+
+	private void touchMove(float x, float y)
+	{
+		float dx = Math.abs(x - mX);
+		float dy = Math.abs(y - mY);
+
+		if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE)
+		{
+			mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) / 2);
+			mX = x;
+			mY = y;
+		}
+	}
+
+	private void touchUp()
+	{
+		mPath.lineTo(mX, mY);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -170,32 +213,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		paintDraw.setStrokeWidth(10);
 
 		ButterKnife.bind(this);
-	}
-
-	/*
-	Project position on ImageView to position on Bitmap draw on it
-	 */
-	private void drawOnProjectedBitMap(ImageView iv, Bitmap bm,
-									   float x0, float y0, float x, float y)
-	{
-		if (x < 0 || y < 0 || x > iv.getWidth() || y > iv.getHeight())
-		{
-			//outside ImageView
-			return;
-		} else
-		{
-
-			float ratioWidth = (float) bm.getWidth() / (float) iv.getWidth();
-			float ratioHeight = (float) bm.getHeight() / (float) iv.getHeight();
-
-			masterCanvas.drawLine(
-					x0 * ratioWidth,
-					y0 * ratioHeight,
-					x * ratioWidth,
-					y * ratioHeight,
-					paintDraw);
-			imageResult.invalidate();
-		}
 	}
 
 	@Override
@@ -216,29 +233,23 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 
 	private void updateCanvasAndImageFromUri()
 	{
-		Bitmap tempBitmap = null;
+		Bitmap immutableBitmap = null;
 
 		try
 		{
-			tempBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoUri);
+			immutableBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoUri);
 
-			Bitmap.Config config;
-			if (tempBitmap.getConfig() != null)
-			{
-				config = tempBitmap.getConfig();
-			} else
-			{
-				config = Bitmap.Config.ARGB_8888;
-			}
+			int canvasWidth = (int) Math.round(immutableBitmap.getWidth() * 0.5);
+			int canvasHeight = (int) Math.round(immutableBitmap.getHeight() * 0.5);
 
 			//masterBitmap is mutable
 			masterBitmap = Bitmap.createBitmap(
-					tempBitmap.getWidth(),
-					tempBitmap.getHeight(),
-					config);
+					canvasWidth,
+					canvasHeight,
+					Bitmap.Config.ARGB_8888);
 
 			masterCanvas = new Canvas(masterBitmap);
-			masterCanvas.drawBitmap(tempBitmap, 0, 0, null);
+			masterCanvas.drawBitmap(immutableBitmap, null, new RectF(0, 0, canvasWidth, canvasHeight), null);
 
 			imageResult.setImageBitmap(masterBitmap);
 		} catch (Exception e)
@@ -246,14 +257,17 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		paths.clear();
+		imageResult.invalidate();
 	}
 
 	private void saveBitmap(Bitmap bm)
 	{
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-		String imageFileName = "JPEG_" + timeStamp + "_";
+		String imageFileName = "IMAGE_PAINT_APP_JPG_" + timeStamp + ".jpg";
 
-		File file = Environment.getExternalStorageDirectory();
+		File file = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES);
 		File newFile = new File(file, imageFileName);
 
 		try

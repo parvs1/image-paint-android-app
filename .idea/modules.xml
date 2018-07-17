@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/DrawingApplication.iml" filepath="$PROJECT_DIR$/DrawingApplication.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/color-picker/color-picker.iml" filepath="$PROJECT_DIR$/color-picker/color-picker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/image-paint-android-app.iml" filepath="$PROJECT_DIR$/image-paint-android-app.iml" />
     </modules>
   </component>
 </project>
