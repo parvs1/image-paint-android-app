@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:orientation="horizontal"
-        android:weightSum="4">
+        android:weightSum="6">
 
         <Button
             android:id="@+id/button_take_picture"
@@ -19,6 +19,13 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Take a Picture" />
+
+        <Button
+            android:id="@+id/button_load_image"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Load an Image" />
 
         <Button
             android:id="@+id/button_save_image"
@@ -33,6 +40,13 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:text="Clear" />
+
+        <Button
+            android:id="@+id/button_undo"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Undo" />
 
         <Button
             android:id="@+id/button_advanced_settings"

@@ -2,6 +2,7 @@ package com.drawing.drawingapplication;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -47,8 +48,10 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 	private int previousX, previousY;
 
 	private Paint paintDraw;
+	private boolean loadImage;
 
 	private static final int REQUEST_IMAGE_CAPTURE = 1;
+	private static final int REQUEST_LOAD_IMAGE = 2;
 
 	private Uri photoUri;
 
@@ -79,6 +82,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		}
 	}
 
+	private void loadImageIntent()
+	{
+		Intent intent = new Intent(Intent.ACTION_PICK,
+				android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+		startActivityForResult(intent, REQUEST_LOAD_IMAGE);
+	}
+
 	public void onColorSelected(int dialogId, int color, int strokeWidth)
 	{
 		paintDraw.setColor(color);
@@ -106,12 +116,33 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		dispatchTakePictureIntent();
 	}
 
+	@OnClick(R.id.button_load_image)
+	public void onClickLoadImage()
+	{
+		loadImageIntent();
+	}
+
 	@OnClick(R.id.button_save_image)
 	public void onClickSaveImage()
 	{
 		if (masterBitmap != null)
 		{
 			saveBitmap(masterBitmap);
+		}
+	}
+
+	@OnClick(R.id.button_undo)
+	public void onClickUndo()
+	{
+		if (!paths.isEmpty())
+		{
+			updateCanvasAndImageFromUri();
+			paths.remove(paths.size() - 1);
+			imageResult.invalidate();
+			for (PaintPath paintPath : paths)
+			{
+				masterCanvas.drawPath(paintPath.path, paintPath.paint);
+			}
 		}
 	}
 
@@ -129,6 +160,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		if (masterBitmap != null)
 		{
 			updateCanvasAndImageFromUri();
+			paths.clear();
+			imageResult.invalidate();
 		}
 	}
 
@@ -225,7 +258,17 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 			switch (requestCode)
 			{
 				case REQUEST_IMAGE_CAPTURE:
+					loadImage = false;
 					updateCanvasAndImageFromUri();
+					paths.clear();
+					imageResult.invalidate();
+					break;
+				case REQUEST_LOAD_IMAGE:
+					loadImage = true;
+					photoUri = data.getData();
+					updateCanvasAndImageFromUri();
+					paths.clear();
+					imageResult.invalidate();
 					break;
 			}
 		}
@@ -233,14 +276,24 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 
 	private void updateCanvasAndImageFromUri()
 	{
-		Bitmap immutableBitmap = null;
-
+		Bitmap immutableBitmap;
+		double scaleFactor;
 		try
 		{
-			immutableBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoUri);
+			if (loadImage)
+			{
+				immutableBitmap = BitmapFactory.decodeStream(
+						getContentResolver().openInputStream(photoUri));
+				scaleFactor = 1;
+			}
+			else
+			{
+				immutableBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoUri);
+				scaleFactor = 0.5;
+			}
 
-			int canvasWidth = (int) Math.round(immutableBitmap.getWidth() * 0.5);
-			int canvasHeight = (int) Math.round(immutableBitmap.getHeight() * 0.5);
+			int canvasWidth = (int) Math.round(immutableBitmap.getWidth() * scaleFactor);
+			int canvasHeight = (int) Math.round(immutableBitmap.getHeight() * scaleFactor);
 
 			//masterBitmap is mutable
 			masterBitmap = Bitmap.createBitmap(
@@ -257,9 +310,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		paths.clear();
-		imageResult.invalidate();
 	}
 
 	private void saveBitmap(Bitmap bm)
