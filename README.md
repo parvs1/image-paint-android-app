@@ -15,4 +15,4 @@ Then, I went a different route and used an image view to capture my touch events
 
 For the color picker, I used [Daniel Nilsson's color picker](https://github.com/danielnilsson9/color-picker-view).  I added a seek bar that controls the stroke width to turn it into a settings page.
 
-I also used (Butterknife)[https://github.com/JakeWharton/butterknife] for quick view and method binding.
+I also used [Butterknife](https://github.com/JakeWharton/butterknife) for quick view and method binding.
