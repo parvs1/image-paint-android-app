@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 		loadImageIntent();
 	}
 
-	@OnClick(R.id.button_save_image)
+	@OnClick(R.id.button_done)
 	public void onClickSaveImage()
 	{
 		if (masterBitmap != null)
@@ -168,8 +168,10 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 	@OnTouch(R.id.image_result)
 	public boolean onTouchImageResult(View view, MotionEvent event)
 	{
-		int x = (int) event.getX();
-		int y = (int) event.getY();
+		float ratioWidth = (float) masterBitmap.getWidth() / (float) imageResult.getWidth();
+		float ratioHeight = (float) masterBitmap.getHeight() / (float) imageResult.getHeight();
+		int x = Math.round(event.getX() * ratioWidth);
+		int y = Math.round(event.getY() * ratioHeight);
 
 		switch (event.getAction())
 		{
@@ -285,21 +287,30 @@ public class MainActivity extends AppCompatActivity implements Serializable, Col
 				immutableBitmap = BitmapFactory.decodeStream(
 						getContentResolver().openInputStream(photoUri));
 				scaleFactor = 1;
-			}
-			else
+			} else
 			{
 				immutableBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoUri);
-				scaleFactor = 0.5;
+				scaleFactor = 1;
 			}
 
 			int canvasWidth = (int) Math.round(immutableBitmap.getWidth() * scaleFactor);
 			int canvasHeight = (int) Math.round(immutableBitmap.getHeight() * scaleFactor);
 
+			Bitmap.Config config;
+			if (immutableBitmap.getConfig() != null)
+			{
+				config = immutableBitmap.getConfig();
+			} else
+			{
+				config = Bitmap.Config.ARGB_8888;
+			}
+
+
 			//masterBitmap is mutable
 			masterBitmap = Bitmap.createBitmap(
 					canvasWidth,
 					canvasHeight,
-					Bitmap.Config.ARGB_8888);
+					config);
 
 			masterCanvas = new Canvas(masterBitmap);
 			masterCanvas.drawBitmap(immutableBitmap, null, new RectF(0, 0, canvasWidth, canvasHeight), null);

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.drawing.drawingapplication.MainActivity">
+    android:background="#313330"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,47 +12,47 @@
         android:orientation="horizontal"
         android:weightSum="6">
 
-        <Button
+        <ImageView
             android:id="@+id/button_take_picture"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Take a Picture" />
+            android:src="@drawable/ic_photo_camera_white_36dp" />
 
-        <Button
+        <ImageView
             android:id="@+id/button_load_image"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Load an Image" />
+            android:src="@drawable/baseline_folder_white_48" />
 
-        <Button
-            android:id="@+id/button_save_image"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Save your Creation" />
-
-        <Button
-            android:id="@+id/button_clear"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:text="Clear" />
-
-        <Button
-            android:id="@+id/button_undo"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Undo" />
-
-        <Button
+        <ImageView
             android:id="@+id/button_advanced_settings"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Advanced Settings" />
+            android:src="@drawable/round_settings_white_48" />
+
+        <ImageView
+            android:id="@+id/button_undo"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/round_undo_white_48" />
+
+        <ImageView
+            android:id="@+id/button_clear"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/round_clear_white_48" />
+
+        <ImageView
+            android:id="@+id/button_done"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/round_done_white_48" />
     </LinearLayout>
 
     <ImageView
@@ -64,6 +63,8 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:adjustViewBounds="true"
-        android:background="@android:color/background_dark"
+        android:background="@android:color/white"
+        android:padding="3dp"
+        android:visibility="invisible"
         android:scaleType="centerInside" />
 </LinearLayout>
